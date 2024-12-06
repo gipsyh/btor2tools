@@ -568,53 +568,84 @@ generate_aiger (Btor2Model &model, bool ascii_mode, bool ignore_error)
   boolector_aig_delete (amgr);
 }
 
-int
-main (int argc, char *argv[])
-{
-  FILE *infile     = 0;
-  char *infilename = 0;
-  bool ascii_mode  = false;
-  bool ignore_error = false;
-
-  for (int i = 1; i < argc; ++i)
-  {
-    if (!strcmp (argv[i], "-a"))
-    {
-      ascii_mode = true;
-    }
-    else if (!strcmp (argv[i], "-i"))
-    {
-      ignore_error = true;
-    }
-    else if (!strcmp (argv[i], "-h") || !strcmp (argv[i], "--help"))
-    {
-      print_usage ();
-      return EXIT_SUCCESS;
-    }
-    else
-    {
-      if (infilename)
-      {
-        die ("Multiple input files specified.");
-      }
-      infilename = argv[i];
-    }
-  }
-
-  if (!infilename)
-  {
-    die ("No BTOR2 input file specified.");
-  }
-
-  infile = fopen (infilename, "r");
-  if (!infile)
-  {
-    die ("Cannot open BTOR2 input file.");
-  }
+extern "C" aiger *btor2aiger(char *filename) {
+  FILE *file = fopen (filename, "r");
   Btor2Model model;
-  parse_btor2 (infile, model);
-  fclose (infile);
-  generate_aiger (model, ascii_mode, ignore_error);
+  parse_btor2 (file, model);
+  fclose (file);
 
-  return EXIT_SUCCESS;
+  BoolectorAIGMgr *amgr;
+  aiger *aig;
+  std::vector<std::pair<uint64_t, uint64_t> > init_constrains;
+
+  amgr = boolector_aig_new (model.btor);
+
+  aig = aiger_init ();
+  AIGVisitorState aig_visitor_state (aig);
+
+  for (BoolectorNode *n : model.inputs)
+  {
+    boolector_aig_bitblast (amgr, n);
+    add_input_to_aiger (model.btor, amgr, aig, n);
+  }
+
+  for (auto kv : model.states)
+  {
+    boolector_aig_bitblast (amgr, kv.second);
+  }
+
+  for (auto kv : model.init)
+  {
+    boolector_aig_bitblast (amgr, kv.second);
+    boolector_aig_visit (amgr, kv.second, aig_visitor, &aig_visitor_state);
+  }
+
+  for (auto kv : model.next)
+  {
+    boolector_aig_bitblast (amgr, kv.second);
+    boolector_aig_visit (amgr, kv.second, aig_visitor, &aig_visitor_state);
+  }
+
+  for (auto kv : model.states)
+  {
+    add_state_to_aiger (model.btor,
+                        amgr,
+                        aig,
+                        kv.second,
+                        model.get_next (kv.first),
+                        model.get_init (kv.first),
+                        init_constrains);
+  }
+
+  for (BoolectorNode *n : model.constraints)
+  {
+    boolector_aig_bitblast (amgr, n);
+    boolector_aig_visit (amgr, n, aig_visitor, &aig_visitor_state);
+    add_constraint_to_aiger (model.btor, amgr, aig, n);
+  }
+
+  for (BoolectorNode *n : model.bad)
+  {
+    boolector_aig_bitblast (amgr, n);
+    boolector_aig_visit (amgr, n, aig_visitor, &aig_visitor_state);
+    add_bad_to_aiger (model.btor, amgr, aig, n);
+  }
+
+  const char *err = aiger_check (aig);
+  if (err)
+    die (err);
+  
+  if (!init_constrains.empty()) {
+    unsigned init_latch = (aig->maxvar + 1) * 2;
+    aiger_add_latch(aig, init_latch, 0, "init latch");
+    aiger_add_reset(aig, init_latch, 1);
+    for (unsigned i = 0; i < init_constrains.size(); ++i) {
+      unsigned init_eq = eq(aig, init_constrains[i].first, init_constrains[i].second);
+      unsigned init = aiger_not(conj(aig, init_latch, aiger_not(init_eq)));
+      aiger_add_constraint(aig, init, 0);
+    }
+  }
+  boolector_aig_delete (amgr);
+  aiger_reencode(aig);
+  return aig;
 }
