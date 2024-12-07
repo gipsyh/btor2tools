@@ -38,8 +38,9 @@ if(BUILD_BTOR2AIGER)
     btor2aiger.cpp
     ${CMAKE_SOURCE_DIR}/deps/aiger/aiger.c
   )
+  add_subdirectory(../deps/boolector boolector)
+  target_include_directories(btor2aiger PRIVATE . ${CMAKE_SOURCE_DIR}/deps/boolector/src)
   target_include_directories(btor2aiger PRIVATE . ${CMAKE_SOURCE_DIR}/deps/aiger)
-  target_compile_options(btor2aiger PRIVATE -std=c++11 -Wall -g -g3 -ggdb)
-  target_link_libraries(btor2aiger btor2parser Boolector::boolector)
+  target_link_libraries(btor2aiger btor2parser boolector)
   install(TARGETS btor2aiger DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()

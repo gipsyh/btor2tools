@@ -1,0 +1,6 @@
+[submodule "deps/aiger"]
+	path = deps/aiger
+	url = https://github.com/arminbiere/aiger.git
+[submodule "deps/boolector"]
+	path = deps/boolector
+	url = https://github.com/boolector/boolector

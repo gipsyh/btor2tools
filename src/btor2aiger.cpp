@@ -17,7 +17,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "boolector/boolector.h"
+#include "boolector.h"
 #include "btor2parser/btor2parser.h"
 extern "C" {
 #include "aiger.h"

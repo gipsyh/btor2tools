@@ -113,13 +113,4 @@ if(ASAN)
   set(BUILD_SHARED_LIBS ON)
 endif()
 
-if(BUILD_BTOR2AIGER)
-  if(NOT EXISTS "${CMAKE_SOURCE_DIR}/deps/aiger/aiger.c")
-    message(FATAL_ERROR
-            "Could not find AIGER sources. Execute script setup-aiger.sh.")
-  endif()
-  list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
-  find_package(Boolector)
-endif()
-
 add_subdirectory(src)
