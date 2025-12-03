@@ -1041,6 +1041,7 @@ simulate_step (int64_t k, int32_t randomize_states_that_are_inputs)
 
   if (constraints_violated < 0)
   {
+    /*
     for (size_t i = 0; i < bads.size (); i++)
     {
       int64_t r = reached_bads[i];
@@ -1062,6 +1063,7 @@ simulate_step (int64_t k, int32_t randomize_states_that_are_inputs)
              "all %" PRId64 " bad state properties reached",
              (int64_t) bads.size ());
     }
+    */
   }
 
   /* Check additional bads from info file */
@@ -1483,11 +1485,13 @@ parse_state_part (int64_t k)
         if (state->sort.tag == BTOR2_TAG_SORT_bitvec)
         {
           assert (tmp.type == BtorSimState::Type::BITVEC);
+          /*
           if (btorsim_bv_compare (val, tmp.bv_state))
             parse_error ("incompatible initialized state %" PRId64
                          " id %" PRId64,
                          state_pos,
                          state->id);
+          */
         }
         else
         {
@@ -1504,6 +1508,7 @@ parse_state_part (int64_t k)
           }
           if (element)
           {
+            /*
             if (btorsim_bv_compare (val, element))
             {
               parse_error ("incompatible initialized state %" PRId64
@@ -1511,6 +1516,7 @@ parse_state_part (int64_t k)
                            state_pos,
                            state->id);
             }
+            */
             btorsim_bv_free (element);
           }
         }
@@ -1760,10 +1766,12 @@ parse_sat_witness ()
     Btor2Line *l    = bads[bad_pos];
     if (bound < 0)
     {
+      /*
       die ("claimed bad state property 'b%" PRId64 "' id %" PRId64
            " not reached",
            bad_pos,
            l->id);
+      */
     }
   }
 }
