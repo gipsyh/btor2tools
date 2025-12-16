@@ -24,6 +24,20 @@ if (BUILD_TOOLS)
   target_link_libraries(btorsim btor2parser)
   target_compile_options(btorsim PRIVATE -Wall -Wfatal-errors)
   install(TARGETS btorsim DESTINATION ${CMAKE_INSTALL_BINDIR})
+  
+  add_executable(btorvcd
+    btorvcd/btorsimam.cpp
+    btorvcd/btorsimstate.cpp
+    btorvcd/btorsimvcd.cpp
+    btorvcd/btorsimhelpers.cpp
+    btorvcd/btorsim.cpp
+    btorvcd/btorsimbv.c
+    btorvcd/btorsimrng.c
+  )
+  target_include_directories(btorvcd PRIVATE .)
+  target_link_libraries(btorvcd btor2parser)
+  target_compile_options(btorvcd PRIVATE -Wall -Wfatal-errors)
+  install(TARGETS btorvcd DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   add_executable(catbtor catbtor.c)
   target_link_libraries(catbtor btor2parser)
